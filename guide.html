@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<!--
+  スマート見積システム（木造在来工法専用）使い方ガイド
+  HEALTH ARCHI 統一テンプレ v1.1 準拠（端末標準フォント／本文18px／オレンジCTA#C85400）
+-->
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>使い方ガイド｜スマート見積システム｜HEALTH ARCHI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style> body { font-family: 'Noto Sans JP','Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif; font-size:18px; line-height:1.6; } </style>
+</head>
+<body class="bg-[#F8FAFC] text-[#1B2B4B]">
+
+  <header class="bg-[#1B2B4B] text-white px-4 py-3 flex justify-between items-center shadow-md">
+    <span class="font-bold text-lg tracking-wide">HEALTH <span class="text-[#F08300]">ARCHI</span><span class="text-slate-300 text-sm">｜使い方ガイド</span></span>
+    <a href="index.html" class="border border-white/40 hover:bg-white/10 text-white text-sm font-medium px-3 rounded whitespace-nowrap" style="min-height:44px;display:flex;align-items:center;">🏠 ツール本体へ戻る</a>
+  </header>
+
+  <main class="max-w-2xl mx-auto px-5 py-8">
+    <h1 class="text-2xl font-bold mb-2">スマート見積システム の使い方</h1>
+    <p class="text-base text-slate-600 mb-6">木造在来工法専用。<strong>最初にマスタ（単価表）を登録しておけば、建物の規模を入力するだけで、一瞬で概算見積が完成</strong>します。明細の手直しもかんたん、そのまま請求書まで発行できます。</p>
+
+    <div class="bg-[#1B2B4B] text-white rounded-lg p-5 mb-8">
+      <div class="font-bold text-[#F08300] mb-2">⚡ このツールの推しどころ</div>
+      <ul class="space-y-1 text-base">
+        <li>・<strong>速い</strong>：規模を入れるだけで、外周長・外壁・屋根などを自動計算して概算見積が即完成</li>
+        <li>・<strong>自分の単価で</strong>：最初にマスタ（単価表）を登録すれば、以降は会社の標準単価で自動作成</li>
+        <li>・<strong>木造在来工法に特化</strong>：在来軸組の積算ロジックに合わせた項目構成</li>
+        <li>・<strong>変更も請求も1本で</strong>：見積を確定 → 変更見積（変更前→変更後を見せる）→ 請求書まで一気通貫</li>
+      </ul>
+    </div>
+
+    <section class="mb-8">
+      <h2 class="text-lg font-bold border-l-4 border-[#F08300] pl-2 mb-3">このツールでできること</h2>
+      <ul class="list-disc pl-6 space-y-1">
+        <li><strong>概算見積の自動作成</strong>：延床坪数・階数・屋根形状などを入れると、内訳明細つきの見積が一瞬で出来上がります</li>
+        <li><strong>自社単価の登録（マスタ）</strong>：標準の単価表を一度登録すれば、毎回それをベースに自動計算</li>
+        <li><strong>明細の手直し</strong>：項目ごとに数量・単価の変更、不要項目の削除、新規項目の追加が自由</li>
+        <li><strong>端数のお値引き</strong>：税抜合計を1万円・10万円単位などで切り捨て、「お値引き」として自動計上</li>
+        <li><strong>見積の確定と変更見積</strong>：確定後に内容を変えると、「変更前→変更後」が一目で分かる<strong>変更見積書</strong>を発行できます</li>
+        <li><strong>請求書の発行</strong>：契約金・着手金・上棟金・最終金の分割にも対応</li>
+        <li><strong>3つの書式</strong>：シンプル／内訳付き／正式（押印欄付き）。印刷からPDF保存できます</li>
+      </ul>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-lg font-bold border-l-4 border-[#F08300] pl-2 mb-3">使い方（かんたんステップ）</h2>
+      <ol class="space-y-4">
+        <li class="bg-white border-2 border-slate-200 rounded p-4"><span class="font-bold text-[#C85400]">STEP 1　最初に1回：自社の単価を登録</span><br>上の「⚙️ マスタ管理」で、各工事項目の単価を自社の標準に直します。一度やれば次回からはこの単価で自動作成されます。（最初は標準サンプルが入っているので、そのままでも試せます）</li>
+        <li class="bg-white border-2 border-slate-200 rounded p-4"><span class="font-bold text-[#C85400]">STEP 2　物件と見積を作る</span><br>「📁 物件一覧」→「＋ 物件の登録」で物件を作り、「＋ この物件で新規見積」を押します。</li>
+        <li class="bg-white border-2 border-slate-200 rounded p-4"><span class="font-bold text-[#C85400]">STEP 3　規模を入れるだけ</span><br>「1. 規模」で延床坪数・階数・屋根形状などを入力。これだけで「2. 内訳明細」に概算見積が出来上がります。</li>
+        <li class="bg-white border-2 border-slate-200 rounded p-4"><span class="font-bold text-[#C85400]">STEP 4　明細を手直し（必要なら）</span><br>「2. 内訳明細」で数量・単価を直したり、項目を追加・削除。「3. 結果」では端数のお値引き（10万円単位など）も設定できます。</li>
+        <li class="bg-white border-2 border-slate-200 rounded p-4"><span class="font-bold text-[#C85400]">STEP 5　見積書を出す／確定する</span><br>「🖨 帳票プレビュー」で見積書を確認し、印刷（PDF保存）。内容が固まったら「✓ この見積を確定」を押します。</li>
+        <li class="bg-white border-2 border-slate-200 rounded p-4"><span class="font-bold text-[#C85400]">STEP 6　変更が出たら → 変更見積書</span><br>確定後は「変更モード」になります。内訳明細で<strong>【変更】</strong>を押すと変更後を入力、<strong>【削除】</strong>で取り消し線、<strong>【＋新規追加】</strong>で項目追加。帳票プレビューの「変更見積書」に、変更前→変更後が分かりやすく出ます。</li>
+        <li class="bg-white border-2 border-slate-200 rounded p-4"><span class="font-bold text-[#C85400]">STEP 7　請求書を発行</span><br>帳票プレビューの種類で「請求書」を選び、分割（契約金・着手金など）を設定して印刷できます。</li>
+      </ol>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-lg font-bold border-l-4 border-[#F08300] pl-2 mb-3">変更見積の見方（色の意味）</h2>
+      <ul class="list-disc pl-6 space-y-1">
+        <li><span class="text-slate-500 line-through">グレーの斜線</span>：変更前（元の内容）</li>
+        <li><span class="text-[#C85400] font-bold">オレンジ</span>：変更後（新しい内容）</li>
+        <li><span class="text-green-700 font-bold">緑</span>：新しく追加した項目</li>
+        <li><span class="text-red-700 font-bold">赤の斜線</span>：削除した項目</li>
+      </ul>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-lg font-bold border-l-4 border-[#F08300] pl-2 mb-3">うまくいかない時は</h2>
+      <ul class="list-disc pl-6 space-y-1">
+        <li><strong>規模を直したいのに変えられない</strong>：確定後は規模が固定されます。規模そのものを変えたいときは、上の「確定をもどす」で作成中に戻してください。</li>
+        <li><strong>項目を削除したのに金額が変わらない</strong>：端数のお値引きを使っている場合は、「3. 結果」で「今の金額で切り直す」を押すとキリのよい金額に直せます（削除分はそのまま反映されています）。</li>
+        <li><strong>数量・単価を空にしたい</strong>：欄の文字を全部消せば空にできます。空欄は「標準の値」として扱われます。</li>
+        <li><strong>PDFにしたい</strong>：帳票プレビューの「🖨 印刷する」→ ブラウザの印刷画面で「PDFとして保存」を選びます。</li>
+        <li>入力したデータはこの端末のブラウザ内に保存されます（外部には送信されません）。バックアップや別端末への移動は「⚙️ 設定」の「エクスポート／インポート」をご利用ください。</li>
+      </ul>
+    </section>
+
+    <div class="text-center mt-10">
+      <a href="index.html" class="inline-block bg-[#C85400] hover:bg-[#A84500] text-white font-bold px-6 rounded-lg" style="min-height:56px;line-height:56px;">🏠 ツールを使ってみる</a>
+    </div>
+
+    <footer class="text-center text-sm text-slate-500 mt-12">
+      HEALTH ARCHI（<a href="https://healtharchi.com" class="underline">healtharchi.com</a>）／ 木造在来工法専用 スマート見積システム
+    </footer>
+  </main>
+</body>
+</html>
