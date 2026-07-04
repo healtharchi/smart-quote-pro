@@ -3423,6 +3423,61 @@ function downloadJson(obj, filename) {
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
 </script>
+<script src="https://healtharchi.com/unlock.js" data-tool="T011_smart-quote-pro"></script>
+<script src="https://healtharchi.com/feedback.js" data-tool="T011_smart-quote-pro"></script>
+<script>
+/* サブスクゲート（P040・2026-07-05）
+   本番切替（オーナー承認🔴）までは既定OFF＝従来どおり誰でも使える。
+   検証時は URL に ?gate=1 を付けるとゲートが強制ONになる。
+   本番切替の手順＝下の GATE_ENFORCED を true に変える（1箇所だけ）。 */
+(function () {
+  "use strict";
+  var GATE_ENFORCED = false; // 🔴 本番切替時に true へ（オーナー承認後・変更はこの1箇所）
+  var enforced = GATE_ENFORCED || /[?&]gate=1/.test(location.search);
+  if (!enforced || !window.HAUnlock) return;
+
+  var FONT = "font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Kaku Gothic ProN','Hiragino Sans',Meiryo,sans-serif;";
+
+  // 全画面の案内（未ログイン時にツールを覆う）
+  var wall = document.createElement("div");
+  wall.style.cssText = "position:fixed;inset:0;z-index:99990;background:#F8FAFC;display:flex;align-items:center;justify-content:center;padding:16px;" + FONT;
+  var card = document.createElement("div");
+  card.style.cssText = "background:#fff;border:1px solid #e2e2e2;border-radius:12px;max-width:480px;width:100%;padding:28px 24px;box-sizing:border-box;text-align:center;";
+  card.innerHTML =
+    '<div style="font-size:15px;font-weight:700;color:#1B2B4B;margin-bottom:4px;">HEALTH ARCHI</div>' +
+    '<h1 style="font-size:21px;color:#1B2B4B;margin:0 0 12px;">スマート見積プロのご利用には、プランのお申し込みが必要です</h1>' +
+    '<p style="font-size:15px;color:#555;line-height:1.7;margin:0 0 18px;">概算見積・変更見積・請求書まで一気通貫で作れる有料ツールです。<br>お申し込み済みの方は、メールアドレスと確認コード（6桁）でログインできます。パスワードは不要です。</p>';
+  var cta = document.createElement("button");
+  cta.type = "button";
+  cta.textContent = "プランの申込・ログイン";
+  cta.style.cssText = "min-height:48px;width:100%;font-size:16px;font-weight:700;border-radius:8px;cursor:pointer;background:#C85400;color:#fff;border:none;margin-bottom:14px;" + FONT;
+  cta.addEventListener("click", function () { window.HAUnlock.open(); });
+  card.appendChild(cta);
+  var freeLink = document.createElement("a");
+  freeLink.href = "https://healtharchi.com/tools.html";
+  freeLink.textContent = "無料ツールを見る（HEALTH ARCHI 実験室）";
+  freeLink.style.cssText = "display:block;font-size:14px;color:#1B2B4B;text-decoration:underline;";
+  card.appendChild(freeLink);
+  wall.appendChild(card);
+  document.body.appendChild(wall);
+
+  // ログイン中だけ出す小さな「アカウント」リンク（お支払い・解約の管理への入口）
+  var account = document.createElement("button");
+  account.type = "button";
+  account.textContent = "アカウント";
+  account.style.cssText = "position:fixed;left:12px;bottom:12px;z-index:9990;min-height:44px;padding:0 14px;font-size:13px;color:#1B2B4B;background:#fff;border:1px solid #ccc;border-radius:8px;cursor:pointer;display:none;" + FONT;
+  account.addEventListener("click", function () { window.HAUnlock.open(); });
+  document.body.appendChild(account);
+
+  function sync() {
+    var pro = window.HAUnlock.isPro();
+    wall.style.display = pro ? "none" : "flex";
+    account.style.display = pro ? "block" : "none";
+  }
+  document.addEventListener("ha-unlock-change", sync);
+  sync();
+})();
+</script>
 <script>
 (function () {
   var src = document.getElementById('app-source').textContent;
