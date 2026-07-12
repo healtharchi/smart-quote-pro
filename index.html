@@ -8,6 +8,26 @@
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.26.4/babel.min.js"></script>
+<!-- GA4計測（P040弾B・トライアル体験設計§3）。送るのはイベント名と回数だけ＝見積の中身・金額・個人情報は一切送らない -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-MJTX97M6NY"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-MJTX97M6NY');
+  /* 計測ヘルパー：イベント名のみ送信。Once系は端末ごとに初回だけ（localStorageフラグ） */
+  window.haTrack = function (name) {
+    try { if (typeof gtag === 'function') gtag('event', name); } catch (e) {}
+  };
+  window.haTrackOnce = function (name) {
+    try {
+      var k = 'sqp_evt_' + name;
+      if (localStorage.getItem(k)) return;
+      localStorage.setItem(k, '1');
+      window.haTrack(name);
+    } catch (e) {}
+  };
+</script>
 <style>
   /* HEALTH ARCHI ツールUI規約 v1.1：端末標準フォント／背景#F8FAFC／文字#1B2B4B */
   body { font-family: 'Noto Sans JP','Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif; background:#F8FAFC; color:#1B2B4B; }
@@ -574,6 +594,16 @@ function App() {
   const [masters, setMasters] = useState(loadMasters);
   const [view, setView] = useState({ name: 'property-list' });
   const [savedAt, setSavedAt] = useState(null);
+  // 初回ウェルカム（画面6・トライアル体験設計§2幕②）：データが1件もない初回だけ表示
+  const [showWelcome, setShowWelcome] = useState(() => {
+    try {
+      return !localStorage.getItem('sqp_welcome_seen') && state.projects.length === 0 && (state.properties || []).length === 0;
+    } catch (e) { return false; }
+  });
+  const closeWelcome = () => {
+    try { localStorage.setItem('sqp_welcome_seen', '1'); } catch (e) {}
+    setShowWelcome(false);
+  };
 
   useEffect(() => { saveAll(state); setSavedAt(new Date()); }, [state]);
   useEffect(() => { saveMasters(masters); }, [masters]);
@@ -615,6 +645,28 @@ function App() {
     p.revisionNumber = sameCount + 1;
     setState(s => ({ ...s, projects: [p, ...s.projects] }));
     setView({ name: 'edit', id: p.id });
+    if (window.haTrackOnce) window.haTrackOnce('first_estimate');
+  };
+
+  // 初回ウェルカムのA「サンプルデータで今すぐ試す」：サンプル物件＋見積を作って編集画面へ直行
+  // （単価は内蔵の初期マスタ＝2026年5月市場調査・32坪標準仕様。規模を変えると金額が動く体験がすぐできる）
+  const startWithSample = () => {
+    closeWelcome();
+    const propName = 'サンプル：32坪 総二階（お試し）';
+    const existing = state.projects.find(p => p.propertyName === propName);
+    if (existing) { setView({ name: 'edit', id: existing.id }); return; }
+    const p = defaultProject('第1回見積', masters);
+    p.propertyName = propName;
+    p.memo = 'お試し用のサンプルです。規模（坪数・階数など）を変えると金額が変わります。不要になったら物件ごと削除できます。';
+    setState(s => ({
+      ...s,
+      properties: (s.properties || []).some(prop => prop.name === propName)
+        ? (s.properties || [])
+        : [...(s.properties || []), { name: propName, createdAt: new Date().toISOString() }],
+      projects: [p, ...s.projects]
+    }));
+    setView({ name: 'edit', id: p.id });
+    if (window.haTrackOnce) window.haTrackOnce('first_estimate');
   };
 
   const duplicateProject = (id) => {
@@ -720,11 +772,18 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col">
       <DialogHost />
+      {showWelcome && (
+        <WelcomeModal
+          onSample={startWithSample}
+          onMasters={() => { closeWelcome(); setView({ name: 'masters' }); }}
+          onLater={closeWelcome} />
+      )}
       <Header view={view} setView={setView} savedAt={savedAt} />
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-6">
         {view.name === 'property-list' && (
           <PropertyList projects={state.projects} properties={state.properties || []} masters={masters}
             onOpen={(propName) => setView({ name: 'list', propertyName: propName })}
+            onOpenProject={(id) => setView({ name: 'edit', id })}
             onAddProperty={addProperty}
             onDeleteProperty={deleteProperty}
             onRenameProperty={renameProperty} />
@@ -780,6 +839,38 @@ function App() {
   );
 }
 
+// 初回ウェルカム（画面6）：導入ガイド「まず1つだけ試す」の画面化。強制チュートリアルにしない（「あとで見る」で閉じられる）
+function WelcomeModal({ onSample, onMasters, onLater }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 no-print" style={{ background: 'rgba(15,23,42,0.5)' }}>
+      <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 sm:p-8" role="dialog" aria-modal="true">
+        <div className="text-sm font-bold mb-1" style={{ color: '#1B2B4B' }}>HEALTH <span style={{ color: '#F08300' }}>ARCHI</span></div>
+        <h2 className="text-xl sm:text-2xl font-bold mb-3" style={{ color: '#1B2B4B' }}>まず、見積を1件作ってみてください（10分）</h2>
+        <p className="text-base text-slate-600 leading-relaxed mb-5">
+          坪数などの規模を入れるだけで、内訳つきの概算見積が出てきます。<br />
+          自社の単価マスタの整備は、あとからいつでもできます。
+        </p>
+        <button onClick={onSample}
+          className="w-full text-white font-bold rounded-lg text-base mb-2"
+          style={{ minHeight: '56px', background: '#C85400' }}>
+          サンプルデータで今すぐ試す（おすすめ）
+        </button>
+        <p className="text-xs text-slate-500 mb-4">単価は標準的な参考値（2026年5月市場調査・32坪標準仕様）が入った状態で始まります。</p>
+        <button onClick={onMasters}
+          className="w-full font-bold rounded-lg text-base bg-white mb-4"
+          style={{ minHeight: '48px', color: '#1B2B4B', border: '2px solid #1B2B4B' }}>
+          自社の単価マスタを登録してから
+        </button>
+        <div className="text-center">
+          <button onClick={onLater} className="text-sm text-slate-500 underline hover:text-slate-700" style={{ minHeight: '44px' }}>
+            あとで見る（この案内は閉じます）
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Header({ view, setView, savedAt }) {
   const navs = [
     { id: 'property-list', label: '物件一覧', icon: '📁' },
@@ -825,7 +916,12 @@ function Header({ view, setView, savedAt }) {
   );
 }
 
-function PropertyList({ projects, properties, masters, onOpen, onAddProperty, onDeleteProperty, onRenameProperty }) {
+function PropertyList({ projects, properties, masters, onOpen, onOpenProject, onAddProperty, onDeleteProperty, onRenameProperty }) {
+  // 再訪時の続き（トライアル体験設計§2幕③）：最後に触った見積へ1クリックで戻れる
+  const resumeProject = useMemo(() => {
+    if (!projects || projects.length === 0) return null;
+    return [...projects].sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''))[0];
+  }, [projects]);
   // 物件名でグループ化（properties 配列 + projects から集計）
   const propMap = useMemo(() => {
     const g = {};
@@ -864,6 +960,22 @@ function PropertyList({ projects, properties, masters, onOpen, onAddProperty, on
         </div>
         <button onClick={onAddProperty} className="px-5 text-sm ha-cta text-white font-bold rounded-lg" style={{ minHeight: '48px' }}>＋ 物件の登録</button>
       </div>
+      {resumeProject && (
+        <div className="bg-white border border-slate-200 rounded-lg p-4 mb-5 flex items-center justify-between flex-wrap gap-3">
+          <div className="min-w-0">
+            <div className="text-xs text-slate-500 mb-0.5">前回の続きから</div>
+            <div className="font-bold text-slate-900 truncate">
+              {resumeProject.propertyName || '(物件名なし)'}｜{resumeProject.name}
+              <span className="text-xs font-normal text-slate-500 ml-2">最終更新: {fmtDate(resumeProject.updatedAt)}</span>
+            </div>
+          </div>
+          <button onClick={() => onOpenProject(resumeProject.id)}
+            className="px-5 text-sm font-bold rounded-lg bg-white whitespace-nowrap"
+            style={{ minHeight: '48px', color: '#1B2B4B', border: '2px solid #1B2B4B' }}>
+            この見積を開く
+          </button>
+        </div>
+      )}
       {propMap.length === 0 ? (
         <div className="bg-white border border-slate-200 rounded-lg p-12 text-center">
           <p className="text-slate-500">物件がまだ登録されていません</p>
@@ -3105,6 +3217,7 @@ function RateMasterEditor({ masters, setMasters }) {
       ...m,
       rateMaster: m.rateMaster.map(r => r.no === no ? { ...r, [key]: val } : r)
     }));
+    if (window.haTrackOnce) window.haTrackOnce('master_saved');
   };
   const resetAll = async () => {
     if (!await uiConfirm({ title: '単価マスタを初期値に戻す', message: '単価マスタを初期値（標準仕様）に戻しますか？\n単価・内訳名・規格・有効/無効すべてリセットされます。\n(ユーザー追加項目もすべて削除されます)', confirmText: '初期値に戻す', danger: true })) return;
@@ -3141,6 +3254,7 @@ function RateMasterEditor({ masters, setMasters }) {
       userAdded: true  // ユーザー追加マーク
     };
     setMasters(m => ({ ...m, rateMaster: [...m.rateMaster, newItem] }));
+    if (window.haTrackOnce) window.haTrackOnce('master_saved');
   };
 
   // ユーザー定義カテゴリーを新規追加 (英字記号は自動採番) — 入力はモーダルで受ける
@@ -3170,6 +3284,7 @@ function RateMasterEditor({ masters, setMasters }) {
     };
     setMasters(m => ({ ...m, rateMaster: [...m.rateMaster, newItem] }));
     setAddCatModalOpen(false);
+    if (window.haTrackOnce) window.haTrackOnce('master_saved');
   };
   const deleteMasterItem = async (no) => {
     const item = masters.rateMaster.find(r => r.no === no);
@@ -3208,6 +3323,18 @@ function RateMasterEditor({ masters, setMasters }) {
 
   const totalItems = masters.rateMaster.length;
   const activeItems = masters.rateMaster.filter(r => !r.disabled).length;
+  // 進捗の見える化（トライアル体験設計§2幕③）：初期値から自社の数字に変えた項目数を事実として表示（煽り文言なし）
+  const initialByNo = useMemo(() => {
+    const m = {};
+    APP_DATA_INITIAL.rateMaster.forEach(r => { m[r.no] = r; });
+    return m;
+  }, []);
+  const adjustedItems = useMemo(() => masters.rateMaster.filter(r => {
+    if (r.userAdded) return true;
+    const init = initialByNo[r.no];
+    if (!init) return true;
+    return Number(r.price) !== Number(init.price) || r.name !== init.name || (r.spec || '') !== (init.spec || '');
+  }).length, [masters.rateMaster, initialByNo]);
 
   return (
     <div>
@@ -3225,6 +3352,9 @@ function RateMasterEditor({ masters, setMasters }) {
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <p className="text-sm text-slate-600">
           単価マスタ: 有効 <strong>{activeItems}</strong> / 全 {totalItems} 内訳
+          <span className="block sm:inline sm:ml-3 text-slate-500">
+            自社の単価に調整済み <strong className="text-slate-700">{adjustedItems}</strong> / 全 {totalItems} 項目（調整した分だけ、見積が自社の実態に近づきます）
+          </span>
         </p>
         <div className="flex items-center gap-2 flex-wrap">
           <button onClick={() => setAddCatModalOpen(true)}
@@ -3586,7 +3716,10 @@ root.render(<App />);
     cta.type = "button";
     cta.textContent = "14日間無料で試す";
     cta.style.cssText = "min-height:56px;width:100%;font-size:17px;font-weight:700;border-radius:8px;cursor:pointer;background:#C85400;color:#fff;border:none;margin-bottom:10px;" + FONT;
-    cta.addEventListener("click", function () { window.HAUnlock.open(); });
+    cta.addEventListener("click", function () {
+      if (window.haTrack) window.haTrack("checkout_click"); // §5-4：申込ボタンクリック計測
+      window.HAUnlock.open();
+    });
     card.appendChild(cta);
     card.insertAdjacentHTML(
       "beforeend",
@@ -3616,6 +3749,24 @@ root.render(<App />);
   }
   document.addEventListener("ha-unlock-change", sync);
   sync();
+})();
+</script>
+<script>
+/* 計測（P040弾B・トライアル体験設計§3）：first_login／return_visit。
+   送るのはイベント名だけ＝メールアドレス・見積内容は送らない。 */
+(function () {
+  "use strict";
+  // first_login：この端末で初めてログイン済み（pro）状態になった時に1回だけ
+  document.addEventListener("ha-unlock-change", function (e) {
+    if (e && e.detail && e.detail.pro && window.haTrackOnce) window.haTrackOnce("first_login");
+  });
+  // return_visit：前回と別の日の再訪を1日1回まで記録（Day1〜13の生存確認）
+  try {
+    var today = new Date().toISOString().slice(0, 10);
+    var last = localStorage.getItem("sqp_last_visit_date");
+    if (last && last !== today && window.haTrack) window.haTrack("return_visit");
+    localStorage.setItem("sqp_last_visit_date", today);
+  } catch (err) {}
 })();
 </script>
 <script>
